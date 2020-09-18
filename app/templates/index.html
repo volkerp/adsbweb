@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADS-B</title>
+
+    <link href="/static/css/style.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin="" />
+
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
+    <script src="/static/js/leaflet-tilelayer-colorfilter.min.js"></script>
+</head>
+
+<body>
+    <div class="main-container">
+        <div class="calendar-container">
+            {% for month in data.months %}
+            <div class="calendar-monthname">{{ month.name }}</div>
+            <div class="calendar-month">
+
+                {% for tag in ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'] %}
+                <div class="calendar-dayname">
+                    {{ tag }}
+                </div>
+                {% endfor %} {% for num in range(month.day_ofs) %}
+                <div>
+                </div>
+                {% endfor %} {% for daynum in range(1, month.day_num+1) %} {% set datestr = '2020-{:02}-{:02}'.format(month.num, daynum) %}
+                <div class="calendar-day {{ 'calendar-day-selected' if data.date == datestr }}">
+                    <div class="calendar-daynumber">{{ daynum }}</div>
+                    {% if datestr in data.main_index %}
+                    <div class="calendar-traffic-bar" style="height: {{ data.main_index[datestr]|length * 0.35 }}px"></div>
+                    <a href="/{{ datestr }}"><span class="calendar-linkspanner"></span></a> {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="center-container">
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+
+            <div id="timeline-container">
+                <div id="timeline-cursor"></div>
+                <div id="timeline-cursor-text">12:34</div>
+                <div class="timeline-item item1">
+                    {% for track in data.day_tracks.values() %}
+                    <div class="marker {{'marker-selected' if data.selected_filename == track.filename }}" data-filename="{{ track.filename }}" title="{{ track.start }} {{ track.id }} {{ track.adr }}" style="left:{{ (track.start_s-(4.5*3600)) / (16*36) }}%; width:{{ track.len_s / (16*36) }}%; top:{{ track.overlap_level*14 + 2 }}px;">
+                        <a href="{{ '/' + data.date + '/' + track.filename}}"><span class="marker-linkspanner"></span></a>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="timeline-item scale-item-bar">
+                    {% for i in range(5, 21) %}
+                    <div class="scale-item-item">
+                        <div class="hour-tick-line"></div>
+                        <div class="scale-number">{{ i }}:00</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="right-container">
+            <div class="acinfo">
+                {% if data.selected_filename %}
+                {% set track = data.day_tracks[data.selected_filename] %}
+                <div class="acinfo-inner">
+                    <div class="acheader">
+                        <span class="targetid">{{ track.id }}</span>
+                        <span class="targetadr">0x{{ data.selected_track.report.target_adr.upper() }}</span>
+                    </div>
+                    <div class=acinfoline>
+                        Mode3A Code: <b>{{track.mode3a}}</b>
+                    </div>
+                    <div class=acinfoline>
+                        Emitter Cat: <b>{{track.emittercat}}</b>
+                    </div>
+
+                    <div class=acinfoline>
+                        Track Beginn: <b>{{ track.start.strftime('%H:%M:%S') }}</b>
+                    </div>
+                    <div class=acinfoline>
+                        Track Ende: <b>{{ track.end.strftime('%H:%M:%S') }}</b>
+                    </div>
+                    <div class=acinfoline>
+                        Track Dauer: <b>{{track.end - track.start }}</b>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="footer">Zeitangaben in UTC</div>
+        </div>
+    </div>
+
+    <script>
+        let tileFilter = [
+            'saturate:40%',
+            'brightness:110%',
+            'hue:30'
+        ]
+
+        var osmlayer = L.tileLayer.colorFilter('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', filter: tileFilter
+        });
+
+        var locallayer = L.tileLayer('/static/tiles/clip/merged/512/latest/{z}/{x}/{y}.png', {
+            maxZoom: 11,
+            tilesize: 512
+        });
+
+        var mymap = L.map('map', {center: [47.98, 7.78], zoom: 12});
+
+        var traffic_pts = [[48.026903, 7.830313], [48.039816, 7.823421], [48.042147, 7.818008], [48.034105, 7.785013],  [48.028101, 7.780529],  [48.003375, 7.804819], [47.992571, 7.832817], [47.993066, 7.839549], [48.000482, 7.844657], [48.019361, 7.834387]];
+        var trafficlayer = L.polyline(traffic_pts, {color: '#10160050', weight: 7, zIndexOffset: 2});
+
+        osmlayer.addTo(mymap)
+        trafficlayer.addTo(mymap);
+
+        L.control.layers(
+            {'OpenStreetMap': osmlayer,'OpenFlightMaps': locallayer},
+            { 'Platzrunde': trafficlayer }
+        ).addTo(mymap);
+
+        var reports = {};
+        {% for track in data.day_tracks.values() %}
+        reports['{{ track.filename }}'] = {{ track.reports|safe }};
+        {% endfor %}
+
+        var current_polyline = null;
+        var current_polyline2 = null;
+        function showTrack(filename) {
+            if (current_polyline) {
+                mymap.removeLayer(current_polyline);
+                mymap.removeLayer(current_polyline2);
+            }
+            if (reports[filename]) {
+                let p = reports[filename].positions.map(obj => [obj.lat, obj.lon])   // extract lat/lon fields into array of arrays
+                current_polyline = L.polyline(p, {
+                    color: '#226697',
+                    weight: 6,
+                    zIndexOffset: 5
+                }).addTo(mymap);
+                current_polyline2 = L.polyline(p, {
+                    color: '#3da2e9',
+                    weight: 4,
+                    zIndexOffset: 6
+                }).addTo(mymap);
+            }
+        }
+
+        showTrack('{{ data.selected_filename }}');
+
+        document.getElementsByClassName('calendar-day-selected')[0].scrollIntoView({block: 'center'});
+
+        /*
+        // timeline mouse cursor
+        var timeline_container = document.getElementById('timeline-container')
+        timeline_container.addEventListener('mousemove', e => {
+            let posx = e.clientX - timeline_container.getBoundingClientRect().left;
+            document.getElementById('timeline-cursor').style.left = posx +'px';
+            let cursor_text = document.getElementById('timeline-cursor-text');
+            cursor_text.style.left = (posx - cursor_text.getBoundingClientRect().width / 2).toString() + 'px';
+        })*/
+
+        /*
+        // track hover
+        for (let marker of document.getElementsByClassName('marker')) {
+            marker.addEventListener('mouseover', e => {
+                if (e.target.getAttribute('data-filename')) {
+                    showTrack(e.target.getAttribute('data-filename'));
+                }
+            })
+        }
+        */
+    </script>
+
+</body>
+
+</html>
