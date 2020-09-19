@@ -103,7 +103,7 @@ def time_recp_velo_hp(data):
 
 def ground_vector(data):
     b = Bits(bytes=data, length=4*8)
-    return {'RE': b[0:1].uint, 'speed': round(b[1:16].uint / 2**14, 3), 'angle': round(b[16:32].uint * (306.0/2**16), 3)}
+    return {'RE': b[0:1].uint, 'speed': round(b[1:16].uint / 2**14, 3), 'angle': round(b[16:32].uint * (360.0/2**16), 3)}
 
 
 def baro_vert_rate(data):

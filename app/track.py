@@ -5,7 +5,7 @@ import os
 import sys
 
 MAININDEX = 'mainindex.json'
-TRACKDIR = os.environ.get('TRACKSDIR') + '/'
+TRACKSDIR = os.environ.get('TRACKSDIR') + '/'
 main_index = None
 
 EMITTERCAT = {
@@ -97,7 +97,7 @@ def read_main_index():
     Read main index.
     Ordered list of days.
     """
-    with open(MAININDEX, 'r') as file:
+    with open(TRACKSDIR + MAININDEX, 'r') as file:
         data = json.load(file)
 
     return data
@@ -111,7 +111,7 @@ def read_track(filename: str) -> dict:
     if not filename.endswith('.json'):    
         return dict()
 
-    with open(TRACKDIR + filename, 'r') as file:
+    with open(TRACKSDIR + filename, 'r') as file:
         data = json.load(file)
 
     return data
@@ -128,8 +128,7 @@ def read_day(date):
             track_dict = read_track(track.filename)
             track.reports = json.dumps(track_dict)
             track.mode3a = oct(track_dict['mode3a'])[2:].rjust(4, '0') if track_dict['mode3a'] else ''
-            if 'emitter_cat' in track_dict['report']:
-                track.emittercat = EMITTERCAT.get(track_dict['report']['emitter_cat'])
+            track.emittercat = EMITTERCAT.get(track_dict.get('emittercat'))
             tracks[track.filename] = track
 
     return resolve_overlap(tracks)

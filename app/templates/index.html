@@ -123,7 +123,9 @@
         trafficlayer.addTo(mymap);
 
         L.control.layers(
-            {'OpenStreetMap': osmlayer,'OpenFlightMaps': locallayer},
+            {'OpenStreetMap': osmlayer,
+            /* 'OpenFlightMaps': locallayer}, */
+            },
             { 'Platzrunde': trafficlayer }
         ).addTo(mymap);
 
