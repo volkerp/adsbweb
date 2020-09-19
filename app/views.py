@@ -48,7 +48,7 @@ def favicon():
     abort(404)
 
 
-@app.route('/', defaults={'datestr': '2020-01-02', 'adr': None})
+@app.route('/', defaults={'datestr': '2020-03-15', 'adr': None})
 @app.route('/<string:datestr>', defaults={'adr': None})
 @app.route('/<string:datestr>/<string:adr>')
 def index(datestr, adr):
