@@ -263,7 +263,8 @@ right column
 }
 
 .footer {
-    font-size: small;
     margin-top: auto;
     margin-bottom: 1px;
+    display: flex;
+    align-items: flex-end;
 }
