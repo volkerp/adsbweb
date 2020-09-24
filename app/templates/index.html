@@ -55,6 +55,12 @@
                     </div>
                     {% endfor %}
                 </div>
+                <div class="timeline-item">
+                    <div style="font-size: x-small; left:0%; position: absolute;">Metar</div>
+                    {% for metar in data.metar %}
+                        <div class="metar" style="left:{{ (metar[0]-(4.5*3600)) / (16*36) }}%;" title="{{ metar[1] }}">M</div>
+                    {% endfor %}
+                </div>
                 <div class="timeline-item scale-item-bar">
                     {% for i in range(5, 21) %}
                     <div class="scale-item-item">
