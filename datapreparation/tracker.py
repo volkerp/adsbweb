@@ -18,7 +18,7 @@ msgs = []
 
 
 def haversine(lat1, lon1, lat2, lon2):
-    R =  6372.8 # For Earth radius in kilometers use 6372.8 km
+    R =  6372.8 # Earth radius
 
     dLat = radians(lat2 - lat1)
     dLon = radians(lon2 - lon1)
@@ -39,7 +39,7 @@ def record_filter(rec, max_height_ft, max_range_km):
         return False
 
     if rec['target_adr'] == 'baaeb0':
-        return False  # atrics reference transmitter
+        return False  # reference transmitter
 
     if 'geom_height' in rec and rec['geom_height'] > max_height_ft:
         return False

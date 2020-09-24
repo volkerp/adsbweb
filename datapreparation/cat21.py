@@ -24,8 +24,8 @@ def bitextrct(v: bytes, s: int, e: int, signed = False):
 def decodeIcaoStr(data):
     """decode icao 8 character string encoded in 6 bytes"""
     chrs = ' ABCDEFGHIJKLMNOPQRSTUVWXYZ                     0123456789      '
-    #b = Bits(bytes=data, length=6 * 8)
-    return ''.join([chrs[ bitextrct(data, i*6, i*6+6) ] for i in range(8)])
+    b = Bits(bytes=data, length=6 * 8)
+    return ''.join([chrs[b[i*6:i*6+6].uint] for i in range(8)])
 
 
 def count_extends(data):
@@ -147,7 +147,7 @@ def mops_ver(data):
 
 
 uap = {
-    36: ('ac_op_state', fixed(1)), # ac_op_state),
+    36: ('ac_op_state', fixed(1), ac_op_state),
     1: ('data_src', fixed(2), lambda data: {'SAC': data[0], 'SIC': data[1]}),
     4: ('service_id', fixed(1), lambda data: data[0]),
     35: ('service_mng', fixed(1)),
@@ -157,12 +157,12 @@ uap = {
     5: ('time_apl_pos', fixed(3), lambda data: extrct(data, 0, 3, signed=False) / 128.0),
     8: ('time_appl_velo', fixed(3), lambda data: extrct(data, 0, 3, signed=False) / 128.0),
     12: ('time_recp_pos', fixed(3), lambda data: extrct(data, 0, 3, signed=False) / 128.0),
-    13: ('time_recp_pos_hp', fixed(4)), # time_recp_pos_hp),
+    13: ('time_recp_pos_hp', fixed(4), time_recp_pos_hp),
     14: ('time_recp_velo', fixed(3), lambda data: extrct(data, 0, 3, signed=False) / 128.0),
-    15: ('time_recp_velo_hp', fixed(4)), # time_recp_pos_hp),
+    15: ('time_recp_velo_hp', fixed(4), time_recp_pos_hp),
     28: ('time_trans', fixed(3), lambda data: extrct(data, 0, 3, signed=False) / 128.0),
     11: ('target_adr', fixed(3), lambda data: data[:3].hex()),
-    17: ('quality_ind', variable()), # quality_ind),
+    17: ('quality_ind', variable(), quality_ind),
     34: ('traj_intent', compound({
         1: ('COM', fixed(1)),
         2: ('traj_data', repetive(15))
@@ -172,19 +172,19 @@ uap = {
     38: ('msg_ampl', fixed(1), lambda data: extrct(data, 0, 1)),
     16: ('geom_height', fixed(2), lambda data: extrct(data, 0, 2, signed=True) * 6.25),
     21: ('flight_lvl', fixed(2), lambda data: extrct(data, 0, 2, signed=False) / 4.0),
-    32: ('sel_alt', fixed(2)), # selected_alt),
+    32: ('sel_alt', fixed(2), selected_alt),
     33: ('final_sel_alt', fixed(2)),
     9: ('airspeed', fixed(2)),
     10: ('true_airspeed', fixed(2)),
     22: ('mag_heading', fixed(2)),
-    24: ('Baro Vert Rate', fixed(2)), #, baro_vert_rate),
-    25: ('geom_vert_rate', fixed(2)), #, geom_vert_rate),
+    24: ('Baro Vert Rate', fixed(2), baro_vert_rate),
+    25: ('geom_vert_rate', fixed(2), geom_vert_rate),
     26: ('ground_vector', fixed(4), ground_vector),
     3: ('track_num', fixed(2)),
     27: ('angle_rate', fixed(2)),
     29: ('target_id', fixed(6), lambda data: decodeIcaoStr(data[:6])),
-    23: ('target_state', fixed(1)), #, target_state),
-    18: ('mops_ver', fixed(1)), #, mops_ver),
+    23: ('target_state', fixed(1), target_state),
+    18: ('mops_ver', fixed(1), mops_ver),
     31: ('met_info', compound({
         1: ('Wind Speed', fixed(2)),
         2: ('Wind Direction', fixed(2)),
