@@ -122,11 +122,11 @@ center column
 
 #timeline-container {
     width: 100%;
-    height: 120px;
+    height: 140px;
     align-self: end;
     display: grid;
     position: relative;
-    grid-template-rows: auto 32px;
+    grid-template-rows: auto 12px 30px;
     overflow-x: scroll;
     overflow-y: hidden;
 }
@@ -140,7 +140,7 @@ center column
     width: 2px;
     margin: 0px 0px;
     padding: 0px;
-    z-index: 3;
+    z-index: 4;
 }
 
 #timeline-cursor-text {
@@ -150,7 +150,7 @@ center column
     padding: 1px 2px;
     border: 2px solid #000000;
     background-color: #ffffff;
-    z-index: 4;
+    z-index: 5;
     font-size: 9pt;
 }
 
@@ -179,11 +179,26 @@ center column
 }
 
 .hour-tick-line {
-    border-left: 1px solid #303030;
-    height: 10px;
+    border-left: 1px solid #505050;
+    height: 12px;
     margin: 0px 4px;
     padding: 0px;
 }
+
+.metar {
+    position: absolute;
+    height: 12px;
+    width: 16px;
+    font-size: x-small;
+    text-align: center;
+    z-index: 1;
+}
+
+.metar:hover {
+    color:  #4693c7;
+    font-weight: 900;
+}
+
 
 .marker {
     position: absolute;
@@ -194,6 +209,7 @@ center column
     border: 1px solid rgba(114, 167, 202, 0.66);
     top: 6px;
     height: 10px;
+    z-index: 2;
 }
 
 .marker-selected {

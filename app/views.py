@@ -7,6 +7,29 @@ import json
 from .track import main_index, read_day, read_track
 
 
+METARFILE = 'metars.txt'
+metar = []
+
+def read_metar():
+    with open(METARFILE) as f:
+        for l in f:
+            metar.append(l.strip())
+
+
+def get_metar(date):
+    ret = []
+    for l in metar:
+        if l.startswith(date.strftime('%Y%m%d')):
+            hour = int(l[8:10])
+            min = int(l[10:12])
+            ret.append((hour*3600+min*60, l[13:]))
+
+    return ret
+
+
+read_metar()
+
+
 def calendar_data(year : int):
     months = []
     names = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
@@ -71,6 +94,7 @@ def index(datestr, adr):
         'day_tracks': day_tracks,
         'selected_track': selected_track,
         'selected_filename': selected_filename,
+        'metar': get_metar(date),
         'svg': svg }
 
     return render_template('index.html', data=data)
